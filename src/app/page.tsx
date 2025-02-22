@@ -11,12 +11,15 @@ type Ticker = {
 export default function TickerTable() {
   const [tickers, setTickers] = useState<Ticker[]>([]);
 
-  const fetchTickers = async () => {
+  const fetchTickers = async (): Promise<void> => {
     try {
       const response = await fetch("/api/checkPrice");
-      const data = await response.json();
+      if (!response.ok) throw new Error(`API error: ${response.statusText}`);
+
+      const data: { tickers?: Ticker[] } = await response.json();
       console.log("API Response:", data); // ✅ Debugging
-      setTickers(data.tickers || []);
+
+      setTickers(data.tickers ?? []);
     } catch (error) {
       console.error("Error fetching tickers:", error);
     }
@@ -45,12 +48,12 @@ export default function TickerTable() {
           </thead>
           <tbody>
             {tickers.length > 0 ? (
-              tickers.map((ticker, index) => (
-                <tr key={index} className="text-center">
+              tickers.map((ticker) => (
+                <tr key={ticker.pair} className="text-center">
                   <td className="border border-gray-600 px-2 py-1">{ticker.pair}</td>
                   <td className="border border-gray-600 px-2 py-1 text-red-500">{ticker.drop}</td>
-                  <td className="border border-gray-600 px-2 py-1">{ticker.lastPrice ?? "N/A"}</td>
-                  <td className="border border-gray-600 px-2 py-1">{ticker.volume ?? "N/A"}</td>
+                  <td className="border border-gray-600 px-2 py-1">{ticker.lastPrice || "N/A"}</td>
+                  <td className="border border-gray-600 px-2 py-1">{ticker.volume || "N/A"}</td>
                 </tr>
               ))
             ) : (
